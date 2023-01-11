@@ -1,27 +1,2 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-int main(){
-int height;
-int sinir,line,bosluk;
- printf("Please Enter Height: ");
- scanf("%d",&height);
- printf("\n");
- for( line=0; line<height; line++)
- {
-    for( bosluk=0; bosluk<height-line-1; bosluk++)
-    {
-        printf(" ");
-    }
-    for( sinir=0; sinir<=line; sinir++)
-    {
-        printf("#");
-    }
-    printf("  ");
-    for( sinir=0; sinir<=line; sinir++)
-    {
-        printf("#");
-    }
-    printf("\n");
- }
-}
+# Auto detect text files and perform LF normalization
+* text=auto
