@@ -7,7 +7,7 @@ int main()
 float paraustu;
 float yirmibes=0.25,onluk=0.10,beslik=0.05,birlik=0.01;
 int yirmibessayisi=0,onluksayisi=0,besliksayisi=0,birliksayisi=0;
-printf("\n\nlutfen para ustu verilecek tutari giriniz :");
+printf("\n\nPara üstü verilecek tutar:");
 scanf("%f",&paraustu);
 while (paraustu>0.01)
 {
