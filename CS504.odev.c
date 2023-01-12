@@ -7,10 +7,10 @@
 int main(int argc, char *argv[])
 {
 
-    // Define allowable filters
+    // İzin verilen filtreleri tanımlayın
     char *filters = "begr";
 
-    // Get filter flag and check validity
+    // Filtre flagini al ve gecerliligini kontrol et
     char filter = getopt(argc, argv, filters);
     if (filter == '?')
     {
@@ -18,25 +18,25 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Ensure only one filter
+    // Bir filtre oldugundan emin ol
     if (getopt(argc, argv, filters) != -1)
     {
         fprintf(stderr, "Only one filter allowed.\n");
         return 2;
     }
 
-    // Ensure proper usage
+    // Dogru kullanım oldugundan emin ol
     if (argc != optind + 2)
     {
         fprintf(stderr, "Usage: filter [flag] infile outfile\n");
         return 3;
     }
 
-    // Remember filenames
+    // Dosya isimlerini hatırla
     char *infile = argv[optind];
     char *outfile = argv[optind + 1];
 
-    // Open input file
+    // Girdi dosyasini ac
     FILE *inptr = fopen(infile, "r");
     if (inptr == NULL)
     {
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
         return 4;
     }
 
-    // Open output file
+    // Cikti dosyasini ac
     FILE *outptr = fopen(outfile, "w");
     if (outptr == NULL)
     {
@@ -53,15 +53,15 @@ int main(int argc, char *argv[])
         return 5;
     }
 
-    // Read infile's BITMAPFILEHEADER
+    // Dosyanın BITMAPFILEHEADER'ını oku
     BITMAPFILEHEADER bf;
     fread(&bf, sizeof(BITMAPFILEHEADER), 1, inptr);
 
-    // Read infile's BITMAPINFOHEADER
+    // Dosyanın BITMAPINFOHEADER'ını oku
     BITMAPINFOHEADER bi;
     fread(&bi, sizeof(BITMAPINFOHEADER), 1, inptr);
 
-    // Ensure infile is (likely) a 24-bit uncompressed BMP 4.0
+    // Dosyanın (muhtemelen) 24 bit sıkıştırılmamış bir BMP 4.0 olduğundan emin olun
     if (bf.bfType != 0x4d42 || bf.bfOffBits != 54 || bi.biSize != 40 ||
         bi.biBitCount != 24 || bi.biCompression != 0)
     {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     int height = abs(bi.biHeight);
     int width = bi.biWidth;
 
-    // Allocate memory for image
+    // Görsel icin hafizayi tahsis et
     RGBTRIPLE(*image)[width] = calloc(height, width * sizeof(RGBTRIPLE));
     if (image == NULL)
     {
@@ -84,69 +84,69 @@ int main(int argc, char *argv[])
         return 7;
     }
 
-    // Determine padding for scanlines
+    // Tarama cizgileri icin padding belirle
     int padding = (4 - (width * sizeof(RGBTRIPLE)) % 4) % 4;
 
-    // Iterate over infile's scanlines
+    // Dosyanın tarama çizgileri üzerinde yineleme yapın
     for (int i = 0; i < height; i++)
     {
-        // Read row into pixel array
+        // Satırı piksel dizisine oku
         fread(image[i], sizeof(RGBTRIPLE), width, inptr);
 
-        // Skip over padding
+        // Paddingi atla
         fseek(inptr, padding, SEEK_CUR);
     }
 
-    // Filter image
+    // Resmi filtrele
     switch (filter)
     {
-        // Blur
+        // Bulanıklık
         case 'b':
             blur(height, width, image);
             break;
 
-        // Edges
+        // Kenarlar
         case 'e':
             edges(height, width, image);
             break;
 
-        // Grayscale
+        // Gri Tonlama
         case 'g':
             grayscale(height, width, image);
             break;
 
-        // Reflect
+        // Yansıt
         case 'r':
             reflect(height, width, image);
             break;
     }
 
-    // Write outfile's BITMAPFILEHEADER
+    // Dosyanın BITMAPFILEHEADER'ını yaz
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
 
-    // Write outfile's BITMAPINFOHEADER
+    // Dosyanın BITMAPINFOHEADER'ını yaz
     fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
-    // Write new pixels to outfile
+    // Outfile'a bir piksel yaz
     for (int i = 0; i < height; i++)
     {
-        // Write row to outfile
+        // Outfile'a satir yaz
         fwrite(image[i], sizeof(RGBTRIPLE), width, outptr);
 
-        // Write padding at end of row
+        // Satir sonuna padding yaz
         for (int k = 0; k < padding; k++)
         {
             fputc(0x00, outptr);
         }
     }
 
-    // Free memory for image
+    // Resim icin bos hafiza
     free(image);
 
-    // Close infile
+    // İnfile'i kapa
     fclose(inptr);
 
-    // Close outfile
+    // Ourfile'i kapa
     fclose(outptr);
 
     return 0;
