@@ -1,4 +1,4 @@
-// Implements a spell-checker
+// Speller'in edevatlari
 
 #include <ctype.h>
 #include <stdio.h>
@@ -7,50 +7,50 @@
 
 #include "dictionary.h"
 
-// Undefine any definitions
+// Herhangi bir tanımın tanımını kaldırın
 #undef calculate
 #undef getrusage
 
-// Default dictionary
+// Varsayilan sozluk
 #define DICTIONARY "dictionaries/large"
 
-// Prototype
+// Prototip
 double calculate(const struct rusage *b, const struct rusage *a);
 
 int main(int argc, char *argv[])
 {
-    // Check for correct number of args
+    // Arg'ın dogru numarasi icin kontrol et
     if (argc != 2 && argc != 3)
     {
         printf("Usage: ./speller [DICTIONARY] text\n");
         return 1;
     }
 
-    // Structures for timing data
+    // Zamanlama verileri için yapılar
     struct rusage before, after;
 
-    // Benchmarks
+    // Benchmarklar
     double time_load = 0.0, time_check = 0.0, time_size = 0.0, time_unload = 0.0;
 
-    // Determine dictionary to use
+    // Kullanmak icin sozluk tanimla
     char *dictionary = (argc == 3) ? argv[1] : DICTIONARY;
 
-    // Load dictionary
+    // Sozluk yukle
     getrusage(RUSAGE_SELF, &before);
     bool loaded = load(dictionary);
     getrusage(RUSAGE_SELF, &after);
 
-    // Exit if dictionary not loaded
+    // Sozluk yuklenmediyse cik
     if (!loaded)
     {
         printf("Could not load %s.\n", dictionary);
         return 1;
     }
 
-    // Calculate time to load dictionary
+    // Sozlugu yuklemek icin zamani hesapla
     time_load = calculate(&before, &after);
 
-    // Try to open text
+    // Text'i acmayi dene
     char *text = (argc == 3) ? argv[2] : argv[1];
     FILE *file = fopen(text, "r");
     if (file == NULL)
@@ -60,74 +60,74 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Prepare to report misspellings
+    // Yanlis heceleri raporlamaya hazirlan
     printf("\nMISSPELLED WORDS\n\n");
 
-    // Prepare to spell-check
+    // Heceleri kontrol etmeye hazirlan
     int index = 0, misspellings = 0, words = 0;
     char word[LENGTH + 1];
 
-    // Spell-check each word in text
+    // Text'deki her hecenin kontrolu
     for (int c = fgetc(file); c != EOF; c = fgetc(file))
     {
-        // Allow only alphabetical characters and apostrophes
+        // Sadece kesme isareti ve alfebetik karakterlere izin ver
         if (isalpha(c) || (c == '\'' && index > 0))
         {
-            // Append character to word
+            // Kelimeye karakter ilave et
             word[index] = c;
             index++;
 
-            // Ignore alphabetical strings too long to be words
+            // Kelime olamayacak kadar uzun stringleri yok say
             if (index > LENGTH)
             {
-                // Consume remainder of alphabetical string
+                // Alfabetik dizinin geri kalanını tüket
                 while ((c = fgetc(file)) != EOF && isalpha(c));
 
-                // Prepare for new word
+                // Yeni kelime icin hazirlan
                 index = 0;
             }
         }
 
-        // Ignore words with numbers (like MS Word can)
+        // Sayi iceren kelimeleri yok say
         else if (isdigit(c))
         {
-            // Consume remainder of alphanumeric string
+            // Alfasayısal dizenin geri kalanını tüket
             while ((c = fgetc(file)) != EOF && isalnum(c));
 
-            // Prepare for new word
+            // Yeni kelime icin hazirlan
             index = 0;
         }
 
-        // We must have found a whole word
+        // Butun bir kelime bulmus olmalisin
         else if (index > 0)
         {
-            // Terminate current word
+            // Gecerli kelimeyi sonlandir
             word[index] = '\0';
 
-            // Update counter
+            // Sayaci güncelle
             words++;
 
-            // Check word's spelling
+            // Kelimelerin hecelenmesini kontrol et
             getrusage(RUSAGE_SELF, &before);
             bool misspelled = !check(word);
             getrusage(RUSAGE_SELF, &after);
 
-            // Update benchmark
+            // Benchmark'i güncelle
             time_check += calculate(&before, &after);
 
-            // Print word if misspelled
+            // Eger yanlis hecelenmisse kelimeyi ekrana yansit
             if (misspelled)
             {
                 printf("%s\n", word);
                 misspellings++;
             }
 
-            // Prepare for next word
+            // Yeni kelime icin hazirlan 
             index = 0;
         }
     }
 
-    // Check whether there was an error
+    // Bir hata olup olmadığını kontrol edin
     if (ferror(file))
     {
         fclose(file);
@@ -136,33 +136,33 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Close text
+    // Texti kapat
     fclose(file);
 
-    // Determine dictionary's size
+    // Sozlugun buyuklugunu belirle
     getrusage(RUSAGE_SELF, &before);
     unsigned int n = size();
     getrusage(RUSAGE_SELF, &after);
 
-    // Calculate time to determine dictionary's size
+    // Sözlüğün buyuklugunu belirlemek için zamanı hesaplayın
     time_size = calculate(&before, &after);
 
-    // Unload dictionary
+    // Sozlugun yuklemesini kaldir
     getrusage(RUSAGE_SELF, &before);
     bool unloaded = unload();
     getrusage(RUSAGE_SELF, &after);
 
-    // Abort if dictionary not unloaded
+    // Sözlük yüklenmemişse iptal et
     if (!unloaded)
     {
         printf("Could not unload %s.\n", dictionary);
         return 1;
     }
 
-    // Calculate time to unload dictionary
+    // Sozlugun yuklemesini kaldirmak icin zamani hesapla
     time_unload = calculate(&before, &after);
 
-    // Report benchmarks
+    // Benchmarklari raporla
     printf("\nWORDS MISSPELLED:     %d\n", misspellings);
     printf("WORDS IN DICTIONARY:  %d\n", n);
     printf("WORDS IN TEXT:        %d\n", words);
@@ -173,11 +173,11 @@ int main(int argc, char *argv[])
     printf("TIME IN TOTAL:        %.2f\n\n",
            time_load + time_check + time_size + time_unload);
 
-    // Success
+    // Basari
     return 0;
 }
 
-// Returns number of seconds between b and a
+// b ve a arasındaki saniye sayısını döndürür
 double calculate(const struct rusage *b, const struct rusage *a)
 {
     if (b == NULL || a == NULL)
