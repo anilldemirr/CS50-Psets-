@@ -1,3 +1,5 @@
+//SPELLER.C
+
 // Speller'in edevatlari
 
 #include <ctype.h>
