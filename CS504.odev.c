@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     // İnfile'i kapa
     fclose(inptr);
 
-    // Ourfile'i kapa
+    // Outfile'i kapa
     fclose(outptr);
 
     return 0;
